@@ -43,3 +43,12 @@ load_save_map()
 
 
 
+def d():
+    # explore a route interactively
+    route_edges = ox.routing.route_to_gdf(G, route, weight=weight)
+    route_edges.explore(tiles="cartodbpositron", style_kwds={"weight": 5})
+    
+    # explore graph edges and route together in a single map
+    m = edges.explore(color="maroon", tiles="cartodbdarkmatter")
+    m = route_edges.explore(m=m, color="yellow", style_kwds={"weight": 5})
+    m
