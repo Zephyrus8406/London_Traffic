@@ -25,7 +25,7 @@ def download_and_save_graph(center=CENTER,distance=DISTANCE,save_path=GRAPH_PATH
     print("Download complete.")
     print(f"Nodes: {len(G.nodes)}")
     print(f"Edges: {len(G.edges)}")
-    G.
+    
     # Save graph
     ox.save_graphml(G,filepath=save_path)
     print(f"Graph saved to: {save_path}")
