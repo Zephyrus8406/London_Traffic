@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from shapely import Point
 
 load_dotenv()
-TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY")
+TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY_2")
+
+
 
 def fetch_tomtom_data(lat, lon, api_key=TOMTOM_API_KEY):
     
@@ -21,9 +23,10 @@ def fetch_tomtom_data(lat, lon, api_key=TOMTOM_API_KEY):
         print('requesting for the data ...')
         if response.status_code == 200:
             data = response.json().get('flowSegmentData', {})
+            print(f'data from fetch data : { data}')
             return data
         elif response.status_code == 403:
-            print("invalid url / api key .")
+            print("invalid url / api key  we are in iran , fetch tomtom data.")
             return None
         else:
             return None
@@ -43,3 +46,5 @@ def parse_tomtom_data(data):
     }
     
     
+
+

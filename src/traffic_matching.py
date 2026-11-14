@@ -1,6 +1,6 @@
 from shapely.geometry import LineString
-from ..src.traffic_api import fetch_tomtom_data , parse_tomtom_data
-
+from traffic_api import fetch_tomtom_data , parse_tomtom_data
+from load_graph import load_graph
 
 
 def get_edge_midpoint(u_data, v_data, edge_data):
@@ -64,3 +64,6 @@ def enrich_graph_with_traffic(G, max_queries=150):
     print(f"Traffic matching completed. API queries used: {query_count}. Coverage: {coverage:.2f}%")
     return G
 
+
+
+enrich_graph_with_traffic(load_graph())
