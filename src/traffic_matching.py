@@ -1,6 +1,7 @@
 from shapely.geometry import LineString
 from traffic_api import fetch_tomtom_data , parse_tomtom_data
 from load_graph import load_graph
+from matching_graphs import *
 
 
 def get_edge_midpoint(u_data, v_data, edge_data):
@@ -19,7 +20,9 @@ def get_edge_midpoint(u_data, v_data, edge_data):
 def enrich_graph_with_traffic(G, max_queries=150):
     query_count = 0
     matched_edges = 0
-
+    nodes , edges = ox.convert.graph_to_gdfs(G , nodes = True , edges = True )
+    
+    
     for u, v, k, data in G.edges(keys=True, data=True):
         u_node = G.nodes[u]
         v_node = G.nodes[v]
@@ -38,7 +41,10 @@ def enrich_graph_with_traffic(G, max_queries=150):
             default_speed = float(str(maxspeed_attr).split()[0])
         except (ValueError, TypeError):
             default_speed = 30.0
-
+        # print("getting the tomtom coordiantes", traffic.get('coordinates'))
+        # tomtom_line = LineString(traffic.get('coordinates'))
+        # print(match_tomtom_segment( tomtom_line= tomtom_line,edges_gdf= edges ))
+        
         if traffic and traffic['confidence'] > 0.4 and traffic['current_speed'] is not None:
             v_curr = float(traffic['current_speed'])
             v_free = float(traffic['free_flow_speed']) if traffic['free_flow_speed'] else default_speed

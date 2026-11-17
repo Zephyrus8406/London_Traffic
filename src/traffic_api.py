@@ -23,7 +23,7 @@ def fetch_tomtom_data(lat, lon, api_key=TOMTOM_API_KEY):
         print('requesting for the data ...')
         if response.status_code == 200:
             data = response.json().get('flowSegmentData', {})
-            print(f'data from fetch data : { data}')
+            #print(f'data from fetch data : { data}')
             return data
         elif response.status_code == 403:
             print("invalid url / api key  we are in iran , fetch tomtom data.")
@@ -48,3 +48,46 @@ def parse_tomtom_data(data):
     
 
 
+
+
+BASE_URL = (
+    "https://api.tomtom.com/traffic/services/4/"
+    "flowSegmentData"
+)
+
+
+def get_flow_segment(latitude,longitude,zoom=18, API_KEY = TOMTOM_API_KEY):
+    if not API_KEY:
+        raise RuntimeError("TOMTOM_API_KEY is missing. ""Check your .env file.")
+    url = (f"{BASE_URL}/absolute/{zoom}/json")
+    params = {"key": API_KEY,"point": f"{latitude},{longitude}","unit": "kmph","openLr": "true"}
+    response = requests.get(url,params=params,timeout=20)
+    response.raise_for_status()
+    return response.json()
+
+
+
+def parse_flow_response(data):
+    flow = data.get("flowSegmentData")
+    if not flow:
+        raise ValueError("Response does not contain flowSegmentData")
+    coordinates = flow.get("coordinates", {}).get("coordinate", [])
+    coords = [(p["longitude"], p["latitude"]) for p in coordinates]
+    geometry = None
+    if len(coords) >= 2:
+        geometry = LineString(coords)
+    return {
+        "current_speed": flow.get("currentSpeed"),
+        "free_flow_speed": flow.get("freeFlowSpeed"),
+        "current_travel_time": flow.get("currentTravelTime"),
+        "free_flow_travel_time": flow.get("freeFlowTravelTime"),
+        "confidence": flow.get("confidence"),
+        "road_closure": flow.get("roadClosure"),
+        "frc": flow.get("frc"),
+        "openlr": flow.get("openlr"),
+        "geometry": geometry
+    }
+
+
+data = get_flow_segment(latitude=51.5215,longitude=-0.1300)
+print(data)

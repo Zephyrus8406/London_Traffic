@@ -21,3 +21,4 @@ def load_graph(graph_path=GRAPH_PATH):
 
 if __name__ == '__main__':
     load_graph()
+    
