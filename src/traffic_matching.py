@@ -16,6 +16,10 @@ def get_edge_midpoint(u_data, v_data, edge_data):
         return mid_lat, mid_lon
 
 
+def get_edge_midpoint_simplified_func(edge_geometry):
+    midpoint = edge_geometry.interpolate(0.5,normalized=True)
+    return midpoint.y, midpoint.x
+
 
 def enrich_graph_with_traffic(G, max_queries=150):
     query_count = 0

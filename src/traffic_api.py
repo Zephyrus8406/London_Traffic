@@ -4,6 +4,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from shapely import Point
+from shapely.geometry import LineString
 
 load_dotenv()
 TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY_2")
@@ -89,5 +90,43 @@ def parse_flow_response(data):
     }
 
 
-data = get_flow_segment(latitude=51.5215,longitude=-0.1300)
-print(data)
+
+def classify_traffic(record):
+    current = record["current_speed"]
+    free_flow = record["free_flow_speed"]
+    confidence = record["confidence"]
+    closure = record["road_closure"]
+    if closure is True:
+        return "closed"
+    if (current is None or free_flow is None or confidence is None):
+        return "missing"
+    if confidence < MIN_CONFIDENCE:
+        return "unreliable"
+    if current <= 0 or free_flow <= 0:
+        return "invalid_speed"
+    return "valid"
+
+
+
+def calculate_travel_time(length_m,speed_kmh):
+    if speed_kmh <= 0:
+        raise ValueError("Speed must be positive")
+    return 3.6 * length_m / speed_kmh
+
+
+
+if __name__ == '__main__':
+    #lets go through an example 
+    raw_data = get_flow_segment(latitude=51.5215,longitude=-0.1300)
+    traffic_record = parse_flow_response(raw_data)
+    print(traffic_record)
+    #another example for the travel time 
+    length = 200
+    speed = 40
+    travel_time = calculate_travel_time(length,speed)
+    print(travel_time)
+
+
+
+
+
