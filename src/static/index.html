@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>London Traffic - p5.js Interactive Map</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; background: #0f172a; color: #f8fafc; }
+    #controls {
+      padding: 10px 16px; background: #1e293b;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid #334155;
+    }
+    #controls select { padding: 4px 8px; border-radius: 4px; border: none; }
+    #layer-bar {
+      padding: 8px 16px; background: #1e293b; font-size: 13px;
+      display: flex; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid #334155;
+    }
+    #layer-bar label { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .hint { font-size: 12px; color: #94a3b8; margin-left: auto; }
+    #canvas-container { flex: 1; position: relative; overflow: hidden; }
+    #stats-panel { padding: 8px 16px; background: #1e293b; border-top: 1px solid #334155; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; color: #f8fafc; }
+    th, td { padding: 5px 8px; border: 1px solid #334155; text-align: center; }
+    th { background: #0f172a; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <strong>London AI Routing (p5.js)</strong>
+    <label>
+      Scenario:
+      <select id="scenario-select">
+        <option value="traffic" selected>Traffic (Measured)</option>
+        <option value="free_flow">Free-Flow</option>
+        <option value="closure">Manual Closure</option>
+      </select>
+    </label>
+    <label>
+      Objective:
+      <select id="objective-select">
+        <option value="time" selected>Time (s)</option>
+        <option value="distance">Distance (m)</option>
+      </select>
+    </label>
+    <span class="hint">Double-click anywhere on the map to change Origin (Start)</span>
+  </div>
+
+  <div id="layer-bar">
+    <label><input type="checkbox" id="chk-red" checked /> Heavy (Red)</label>
+    <label><input type="checkbox" id="chk-yellow" checked /> Moderate (Yellow)</label>
+    <label><input type="checkbox" id="chk-closed" checked /> Closed (API)</label>
+    <label><input type="checkbox" id="chk-missing" /> Missing Data</label>
+    <label><input type="checkbox" id="chk-manual" checked /> Manual Closure</label>
+    <span>|</span>
+    <label style="color:#60a5fa"><input type="checkbox" id="chk-astar" checked /> A*</label>
+    <label style="color:#4ade80"><input type="checkbox" id="chk-greedy" checked /> Greedy</label>
+    <label style="color:#c084fc"><input type="checkbox" id="chk-bfs" /> BFS</label>
+    <label style="color:#fb923c"><input type="checkbox" id="chk-dfs" /> DFS</label>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <div id="stats-panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Status</th>
+          <th>Distance (m)</th>
+          <th>Time (s)</th>
+          <th>Node Expansions</th>
+          <th>Max Frontier</th>
+          <th>Runtime (ms)</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body"></tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
