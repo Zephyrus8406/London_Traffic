@@ -187,7 +187,7 @@ Ties are always broken by node id, and among parallel edges by the cheapest one 
 
 ```bash
 git clone <your-repo-url>
-cd <your-repo>
+cd London_Traffic
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
