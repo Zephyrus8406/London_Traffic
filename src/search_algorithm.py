@@ -7,11 +7,7 @@ import osmnx as ox
 
 class SearchAlgorithm:
     def __init__(self, graph, objective="distance", v_max=None):
-        """
-        graph: گراف خروجی از build_scenario_graph (دارای weight_distance و weight_time)
-        objective: 'distance' یا 'time'
-        v_max: بیشترین سرعت موجود در گراف (km/h) برای هیوریستیک زمان A* و Greedy
-        """
+
         if objective not in ("distance", "time"):
             raise ValueError("Objective must be 'distance' or 'time'")
 
@@ -26,20 +22,15 @@ class SearchAlgorithm:
         else:
             self.v_max = v_max
 
-    # ---------------- Helper Methods ----------------
-
     def _select_edge(self, u, v, ignore_weights=False):
-        """
-        انتخاب یک یال مشخص (key, data) بین u و v با حفظ هویت یال‌های موازی
-        و شکستن تساوی قطعی (Deterministic tie-breaking).
-        """
+        # For handling parallel edges
         edges_dict = self.graph.get_edge_data(u, v)
         if ignore_weights:
-            # برای BFS و DFS: بدون توجه به وزن، کوچک‌ترین کلید را قطعی انتخاب کن
+            # For DFS & BFS
             best_key = min(edges_dict.keys())
             return best_key, edges_dict[best_key]
 
-        # برای Greedy و A*: کم‌هزینه‌ترین یال موازی (در تساوی، کوچک‌ترین کلید)
+        # For A* & Greedy
         best_key, best_data = min(
             edges_dict.items(),
             key=lambda item: (item[1][self.weight_key], item[0]),
@@ -47,10 +38,7 @@ class SearchAlgorithm:
         return best_key, best_data
 
     def heuristic(self, node, goal):
-        """
-        هدف distance: فاصله مستقیم (متر)
-        هدف time: 3.6 * d(n, G) / V_max (ثانیه)
-        """
+
         y1, x1 = self.graph.nodes[node]["y"], self.graph.nodes[node]["x"]
         y2, x2 = self.graph.nodes[goal]["y"], self.graph.nodes[goal]["x"]
         d = ox.distance.great_circle(y1, x1, y2, x2)
@@ -60,7 +48,7 @@ class SearchAlgorithm:
         return (3.6 * d) / self.v_max
 
     def _reconstruct_result(self, parent, goal, expansions, max_frontier, runtime_s):
-        """بازسازی مسیر گره‌ها، یال‌های دقیق (u, v, key) و محاسبه مسافت و زمان کل."""
+        # Traversing the graph and returning the data for experimentaition
         if goal not in parent:
             return {
                 "found": False,
@@ -103,7 +91,6 @@ class SearchAlgorithm:
             "runtime_s": runtime_s,
         }
 
-    # ---------------- 1. BFS ----------------
 
     def bfs(self, start, goal):
         t0 = time.perf_counter()
@@ -122,8 +109,6 @@ class SearchAlgorithm:
                 return self._reconstruct_result(
                     parent, goal, expansions, max_frontier, time.perf_counter() - t0
                 )
-
-            # مرتب‌سازی همسایه‌ها برای شکستن تساوی قطعی
             for v in sorted(self.graph.successors(u)):
                 if v not in visited:
                     visited.add(v)
@@ -132,8 +117,6 @@ class SearchAlgorithm:
                     frontier.append(v)
 
         return self._reconstruct_result({}, goal, expansions, max_frontier, time.perf_counter() - t0)
-
-    # ---------------- 2. DFS ----------------
 
     def dfs(self, start, goal):
         t0 = time.perf_counter()
@@ -157,7 +140,6 @@ class SearchAlgorithm:
                     parent, goal, expansions, max_frontier, time.perf_counter() - t0
                 )
 
-            # مرتب‌سازی معکوس تا کوچک‌ترین شناسه گره بالاتر در پشته قرار گیرد و اول باز شود
             for v in sorted(self.graph.successors(u), reverse=True):
                 if v not in explored:
                     key, _ = self._select_edge(u, v, ignore_weights=True)
@@ -165,8 +147,6 @@ class SearchAlgorithm:
                     frontier.append(v)
 
         return self._reconstruct_result({}, goal, expansions, max_frontier, time.perf_counter() - t0)
-
-    # ---------------- 3. Greedy Best-First Search ----------------
 
     def greedy(self, start, goal):
         t0 = time.perf_counter()
@@ -197,8 +177,6 @@ class SearchAlgorithm:
                     heapq.heappush(frontier, (self.heuristic(v, goal), v))
 
         return self._reconstruct_result({}, goal, expansions, max_frontier, time.perf_counter() - t0)
-
-    # ---------------- 4. A* Search ----------------
 
     def a_star(self, start, goal):
         t0 = time.perf_counter()
@@ -242,13 +220,11 @@ if __name__ == "__main__":
     from traffic_api import load_matches
     from traffic_matching import apply_traffic_matches
 
-    # بارگذاری گراف و اسنپ‌شات واقعی ترافیک
     G_base = load_graph()
     matches = load_matches("./data/traffic_snapshot.json")
     G_traffic = apply_traffic_matches(G_base.copy(), matches)
     G_scen, vmax = build_scenario_graph(G_traffic, scenario="traffic")
 
-    # انتخاب دو گره واقعی برای تست سریع
     nodes_list = list(G_scen.nodes)
     start_node, goal_node = nodes_list[0], nodes_list[-1]
 

@@ -2,7 +2,6 @@ let trafficData = null;
 let routeData = null;
 let currentStart = null;
 
-// محدوده جغرافیایی گراف برای تبدیل دقیق به پیکسل
 let bounds = { minLat: 51.51, maxLat: 51.53, minLon: -0.14, maxLon: -0.12 };
 const PADDING = 30;
 
@@ -29,8 +28,6 @@ function windowResized() {
   const container = document.getElementById("canvas-container");
   resizeCanvas(container.clientWidth, container.clientHeight);
 }
-
-// ---------------- تبدیل مختصات جغرافیایی <-> پیکسل ----------------
 
 function computeBounds(layers) {
   let minLat = Infinity, maxLat = -Infinity;
@@ -80,8 +77,6 @@ function xyToLatLon(x, y) {
   return { lat, lon };
 }
 
-// ---------------- ارتباط با بک‌اند پایتون ----------------
-
 async function initMapData() {
   const res = await fetch("/api/traffic");
   trafficData = await res.json();
@@ -122,8 +117,6 @@ function renderStatsTable(routes) {
   }
 }
 
-// ---------------- حلقه رسم p5.js ----------------
-
 function drawPolyline(coords) {
   noFill();
   beginShape();
@@ -147,14 +140,12 @@ function draw() {
 
   const layers = trafficData.layers;
 
-  // ۱. رسم شبکه خیابان‌های عادی در پس‌زمینه (در صورت وجود)
   if (layers.normal) {
     stroke(51, 65, 85);
     strokeWeight(1.5);
     layers.normal.forEach((item) => drawPolyline(item.coords));
   }
 
-  // ۲. رسم لایه‌های ترافیک بر اساس چک‌باکس‌ها
   if (document.getElementById("chk-missing").checked) {
     stroke(100, 116, 139);
     strokeWeight(1.5);
@@ -181,7 +172,7 @@ function draw() {
     layers.manual_closed.forEach((item) => drawPolyline(item.coords));
   }
 
-  // ۳. رسم مسیر ۴ الگوریتم
+  
   if (routeData) {
     const drawRoute = (algoName, checkboxId, r, g, b, weight) => {
       const info = routeData.routes[algoName];
@@ -191,12 +182,11 @@ function draw() {
       info.segments.forEach((seg) => drawPolyline(seg));
     };
 
-    drawRoute("DFS", "chk-dfs", 251, 146, 60, 2.5);
+    drawRoute("DFS", "chk-dfs", 106, 13, 173, 2.5);
     drawRoute("BFS", "chk-bfs", 192, 132, 252, 3.5);
     drawRoute("Greedy", "chk-greedy", 74, 222, 128, 4.5);
     drawRoute("A*", "chk-astar", 59, 130, 246, 5.5);
 
-    // ۴. رسم مارکرهای مبدأ (سبز) و مقصد (قرمز)
     const startPt = latLonToXY(routeData.start.lat, routeData.start.lon);
     const goalPt = latLonToXY(routeData.goal.lat, routeData.goal.lon);
 
@@ -216,8 +206,6 @@ function draw() {
     text("GOAL", goalPt.x + 10, goalPt.y);
   }
 }
-
-// ---------------- رویداد دابل‌کلیک در p5.js ----------------
 
 function doubleClicked() {
   if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {

@@ -157,16 +157,13 @@ def load_matches(filepath):
 
 
 if __name__ == "__main__":
-    # تست ۱: دریافت و تجزیه داده زنده برای یک نقطه در لندن
     raw_data = get_flow_segment(latitude=51.5215, longitude=-0.1300)
     if raw_data:
         traffic_record = parse_flow_response(raw_data)
         print("Live Parsed Record:", traffic_record)
 
-    # تست ۲: محاسبه زمان سفر
     print("Sample Travel Time (s):", calculate_travel_time(length_m=200, speed_kmh=40))
 
-    # تست ۳: پردازش یک رکورد فرضی
     sample_record = {
         "current_speed": 20,
         "free_flow_speed": 40,

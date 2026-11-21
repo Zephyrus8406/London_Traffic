@@ -17,23 +17,18 @@ SNAPSHOT_PATH = "./data/traffic_snapshot.json"
 STATIC_DIR = Path(__file__).parent / "static"
 
 
-# ---------------- 1. بارگذاری یک‌باره داده‌ها در حافظه ----------------
-
 print("Initializing map data and scenarios...")
 G_base = load_graph()
 matches = load_matches(SNAPSHOT_PATH)
 G_traffic = apply_traffic_matches(G_base.copy(), matches)
 
-# انتخاب مبدأ پیش‌فرض و مقصد ثابت از گره‌های واقعی گراف
 all_nodes = list(G_traffic.nodes)
 DEFAULT_START_NODE = all_nodes[0]
 FIXED_GOAL_NODE = all_nodes[-1]
 
-# ساخت دو سناریوی اول
 G_free, vmax_free = build_scenario_graph(G_traffic, scenario="free_flow")
 G_meas, vmax_meas = build_scenario_graph(G_traffic, scenario="traffic")
 
-# انتخاب هوشمند یک یال برای انسداد دستی (یال میانی مسیر A* تا تغییر مسیر دیده شود)
 _init_solver = SearchAlgorithm(G_meas, objective="time", v_max=vmax_meas)
 _init_res = _init_solver.a_star(DEFAULT_START_NODE, FIXED_GOAL_NODE)
 if _init_res["found"] and _init_res["edges"]:
@@ -41,7 +36,6 @@ if _init_res["found"] and _init_res["edges"]:
 else:
     MANUAL_CLOSED_EDGE = next(iter(G_meas.edges(keys=True)))
 
-# ساخت سناریوی سوم (انسداد دستی)
 G_clos, vmax_clos = build_scenario_graph(
     G_traffic, scenario="closure", closed_edge=MANUAL_CLOSED_EDGE
 )
@@ -52,15 +46,12 @@ SCENARIOS = {
     "closure": (G_clos, vmax_clos),
 }
 
-
-# ---------------- 2. توابع کمکی هندسه و گره‌ها ----------------
-
 def get_edge_coords(G, u, v, key):
     """استخراج مختصات دقیق یک یال موازی به فرمت [lat, lon] برای Leaflet."""
     data = G.edges[u, v, key]
     geom = data.get("geometry")
     if geom is not None:
-        # تبدیل (lon, lat) در Shapely به [lat, lon] برای Leaflet
+
         return [[float(y), float(x)] for x, y in geom.coords]
     return [
         [float(G.nodes[u]["y"]), float(G.nodes[u]["x"])],
@@ -69,7 +60,6 @@ def get_edge_coords(G, u, v, key):
 
 
 def find_nearest_node(G, lat, lon):
-    """یافتن نزدیک‌ترین گره گراف به مختصات کلیک کاربر (بدون وابستگی اضافی)."""
     return min(
         G.nodes,
         key=lambda n: ox.distance.great_circle(lat, lon, G.nodes[n]["y"], G.nodes[n]["x"]),
@@ -77,7 +67,6 @@ def find_nearest_node(G, lat, lon):
 
 
 def build_traffic_payload():
-    """آماده‌سازی مختصات یال‌های ترافیکی به تفکیک رنگ و وضعیت."""
     layers = {"red": [], "yellow": [], "closed": [], "missing": [], "manual_closed": [], "normal": []}
 
     for u, v, key, data in G_traffic.edges(keys=True, data=True):
@@ -121,7 +110,6 @@ def build_traffic_payload():
 
 
 def compute_routes_payload(lat, lon, scenario, objective):
-    """اجرای هر ۴ الگوریتم جستجو برای مبدأ جدید و تبدیل مسیرها به مختصات نقشه."""
     if scenario not in SCENARIOS:
         scenario = "traffic"
     if objective not in ("time", "distance"):
@@ -144,7 +132,6 @@ def compute_routes_payload(lat, lon, scenario, objective):
         res = func(start_node, goal_node)
         segments = []
         if res["found"]:
-            # حفظ هویت دقیق یال‌های موازی (u, v, key) در رسم نقشه
             segments = [get_edge_coords(G_scen, u, v, k) for u, v, k in res["edges"]]
 
         routes_out[name] = {
@@ -175,7 +162,7 @@ def compute_routes_payload(lat, lon, scenario, objective):
     }
 
 
-# ---------------- 3. سرور داخلی HTTP پایتون ----------------
+# HTTP PART
 
 class MapRequestHandler(BaseHTTPRequestHandler):
     def _send_json(self, payload, status=200):
